@@ -422,41 +422,40 @@ export const deleteUser = async (
   request: FastifyRequest<{ Params: { id: string } }>,
   reply: FastifyReply
 ) => {
+  // SAME LOGIC, only moved here
   try {
     const UserID = request.params.id;
 
-    const user = await User.findById(UserID);
-
-    if (!user) {
-      return reply.status(404).send({
-        status_code: 404,
-        message: "User not found",
-        data: "",
-      });
-    }
-
     await authClient.admin.removeUser({ userId: UserID });
 
-    if (user.role === "student") {
-      const studentDoc = await Student.findOne({ user: user._id });
+    const user = await User.findById(UserID);
+    await User.findByIdAndDelete(UserID);
+
+    if (user?.role === "student") {
+      const STID = await Student.findOne({ user: user._id });
       await Student.deleteOne({ user: user._id });
-      if (studentDoc) {
-        await Parent.deleteMany({ child: studentDoc._id });
-      }
-    } else if (user.role === "parent") {
+      await Parent.deleteOne({ child: STID });
+    }
+
+    if (user?.role === "parent") {
       await Parent.deleteOne({ user: user._id });
-    } else if (["teacher", "principal", "hod", "admin", "staff"].includes(user.role)) {
+    }
+
+    if (
+      user?.role &&
+      ["teacher", "principal", "hod", "admin", "staff"].includes(user.role)
+    ) {
       await Teacher.deleteOne({ user: user._id });
     }
 
-    return reply.status(200).send({
-      status_code: 200,
+    return reply.status(204).send({
+      status_code: 204,
       message: "Successfully Deleted The User",
       data: "",
     });
   } catch (e) {
-    return reply.status(500).send({
-      status_code: 500,
+    return reply.send({
+      status_code: 404,
       message: "Can't delete the user",
       error: e,
     });
@@ -604,17 +603,11 @@ export const listUser = async (
 
     const flattenedResults = results.map((record: any) => {
       if (record.user) {
-        const { user, _id, ...rest } = record;
-        const resp = {
-          id: {
-            record : _id,
-            user: user._id
-          },
+        const { user, ...rest } = record;
+        return {
           ...user,
           ...rest,
         };
-        delete resp._id
-        return resp
       }
       return record;
     });
