@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyInstance, FastifyRequest, RouteShorthandOptions } from "fastify";
-import { Parent, Student, Teacher, User } from "@/plugins/db/models/auth.model";
+import { User } from "@/plugins/db/models/auth.model";
 import { auth } from "@/plugins/auth";
 import { isAdmin } from "@/middleware/roles";
 import { request } from "http";
@@ -54,11 +54,11 @@ export default async function (fastify: FastifyInstance) {
             department : string,
             staff_ID : string,
         }
-        const teacherInstance = await Teacher.findById(staff_ID)
-        if (!teacherInstance){
+        const staffUser = await User.findById(staff_ID)
+        if (!staffUser || !['teacher','hod','principal','admin','staff'].includes(staffUser.role)){
             return reply.status(404).send({
                 status_code: 404,
-                message: "Teacher not found",
+                message: "Staff user not found or not a staff role",
                 data: "",
             });
         }
@@ -66,7 +66,7 @@ export default async function (fastify: FastifyInstance) {
             name: name,
             adm_year: adm_year,
             department: department,
-            staff_advisor: teacherInstance._id
+            staff_advisor: staffUser._id
         })
         await createBatch.save()
         return reply.status(201).send({

@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { AttendanceRecord, AttendanceSession } from "@/plugins/db/models/attendance.model";
-import { Teacher, User } from "@/plugins/db/models/auth.model";
+import { User } from "@/plugins/db/models/auth.model";
 
 export const createRecord = async (
   request: FastifyRequest,
@@ -8,16 +8,6 @@ export const createRecord = async (
 ) => {
   try {
     const userId = request.user.id;
-    
-    // Find the teacher associated with this user
-    const teacher = await Teacher.findOne({ user: userId });
-    if (!teacher) {
-      return reply.status(404).send({
-        status_code: 404,
-        message: "Teacher profile not found",
-        data: "",
-      });
-    }
 
     const { session, student, status, remarks } = request.body as {
       session: string;
@@ -37,11 +27,7 @@ export const createRecord = async (
     }
 
     // Check if record already exists for this student and session
-    const existingRecord = await AttendanceRecord.findOne({
-      session,
-      student,
-    });
-
+    const existingRecord = await AttendanceRecord.findOne({ session, student });
     if (existingRecord) {
       return reply.status(422).send({
         status_code: 422,
@@ -53,7 +39,7 @@ export const createRecord = async (
     const newRecord = new AttendanceRecord({
       session,
       student,
-      marked_by: teacher._id,
+      marked_by: userId,
       status,
       remarks: remarks || "",
       marked_at: new Date(),
@@ -81,24 +67,10 @@ export const createBulkRecords = async (
 ) => {
   try {
     const userId = request.user.id;
-    
-    // Find the teacher associated with this user
-    const teacher = await Teacher.findOne({ user: userId });
-    if (!teacher) {
-      return reply.status(404).send({
-        status_code: 404,
-        message: "Teacher profile not found",
-        data: "",
-      });
-    }
 
     const { session, records } = request.body as {
       session: string;
-      records: Array<{
-        student: string;
-        status: string;
-        remarks?: string;
-      }>;
+      records: Array<{ student: string; status: string; remarks?: string }>;
     };
 
     // Verify the session exists
@@ -116,26 +88,22 @@ export const createBulkRecords = async (
     const errors = [];
 
     for (const record of records) {
-      // Check if record already exists
       const existingRecord = await AttendanceRecord.findOne({
         session,
         student: record.student,
       });
 
       if (existingRecord) {
-        errors.push({
-          student: record.student,
-          message: "Record already exists",
-        });
+        errors.push({ student: record.student, message: "Record already exists" });
         continue;
       }
 
       const newRecord = new AttendanceRecord({
         session,
-        student: record.student,
-        marked_by: teacher._id,
-        status: record.status,
-        remarks: record.remarks || "",
+        student:   record.student,
+        marked_by: userId,
+        status:    record.status,
+        remarks:   record.remarks || "",
         marked_at: currentTime,
       });
 
@@ -146,10 +114,7 @@ export const createBulkRecords = async (
     return reply.status(201).send({
       status_code: 201,
       message: `Successfully created ${createdRecords.length} attendance records`,
-      data: {
-        created: createdRecords,
-        errors: errors.length > 0 ? errors : undefined,
-      },
+      data: { created: createdRecords, errors: errors.length > 0 ? errors : undefined },
     });
   } catch (error) {
     return reply.status(500).send({
@@ -168,13 +133,7 @@ export const getRecord = async (
     const recordId = request.params.id;
 
     const record = await AttendanceRecord.findById(recordId)
-      .populate({
-        path: "student",
-        populate: {
-          path: "user",
-          select: "name email first_name last_name",
-        },
-      })
+      .populate("student", "name email first_name last_name")
       .populate({
         path: "session",
         populate: [
@@ -182,13 +141,7 @@ export const getRecord = async (
           { path: "subject", select: "name code" },
         ],
       })
-      .populate({
-        path: "marked_by",
-        populate: {
-          path: "user",
-          select: "name email first_name last_name",
-        },
-      });
+      .populate("marked_by", "name email first_name last_name");
 
     if (!record) {
       return reply.status(404).send({
@@ -257,13 +210,7 @@ export const listRecords = async (
     const skip = (page - 1) * limit;
 
     const records = await AttendanceRecord.find(filter)
-      .populate({
-        path: "student",
-        populate: {
-          path: "user",
-          select: "name email first_name last_name",
-        },
-      })
+      .populate("student", "name email first_name last_name")
       .populate({
         path: "session",
         populate: [
@@ -271,13 +218,7 @@ export const listRecords = async (
           { path: "subject", select: "name code" },
         ],
       })
-      .populate({
-        path: "marked_by",
-        populate: {
-          path: "user",
-          select: "name email first_name last_name",
-        },
-      })
+      .populate("marked_by", "name email first_name last_name")
       .sort({ marked_at: -1 })
       .skip(skip)
       .limit(limit);
@@ -323,11 +264,9 @@ export const updateRecord = async (
       });
     }
 
-    // Check if user is the marker or has admin privileges
-    const teacher = await Teacher.findOne({ user: userId });
+    // Check authorization: requestor must be the marker OR have admin privileges
     if (
-      teacher &&
-      record.marked_by.toString() !== teacher._id.toString() &&
+      record.marked_by.toString() !== userId.toString() &&
       !["admin", "principal", "hod"].includes(request.user.role)
     ) {
       return reply.status(403).send({
@@ -344,13 +283,7 @@ export const updateRecord = async (
       updateData,
       { new: true }
     )
-      .populate({
-        path: "student",
-        populate: {
-          path: "user",
-          select: "name email first_name last_name",
-        },
-      })
+      .populate("student", "name email first_name last_name")
       .populate({
         path: "session",
         populate: [
@@ -358,13 +291,7 @@ export const updateRecord = async (
           { path: "subject", select: "name code" },
         ],
       })
-      .populate({
-        path: "marked_by",
-        populate: {
-          path: "user",
-          select: "name email first_name last_name",
-        },
-      });
+      .populate("marked_by", "name email first_name last_name");
 
     return reply.send({
       status_code: 200,
@@ -397,11 +324,9 @@ export const deleteRecord = async (
       });
     }
 
-    // Check if user is the marker or has admin privileges
-    const teacher = await Teacher.findOne({ user: userId });
+    // Check authorization: requestor must be the marker OR have admin privileges
     if (
-      teacher &&
-      record.marked_by.toString() !== teacher._id.toString() &&
+      record.marked_by.toString() !== userId.toString() &&
       !["admin", "principal", "hod"].includes(request.user.role)
     ) {
       return reply.status(403).send({

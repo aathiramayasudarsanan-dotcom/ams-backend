@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { Batch } from "@/plugins/db/models/academics.model";
-import { Teacher } from "@/plugins/db/models/auth.model";
+import { User } from "@/plugins/db/models/auth.model";
 
 interface ListBatchesQuery {
   page?: number;
@@ -137,12 +137,12 @@ export const createBatchHandler = async (
       request.body as CreateBatchBody;
     const batchId = (id || generateBatchId(adm_year, department)).toUpperCase();
 
-    // Check if staff advisor exists
-    const teacher = await Teacher.findById(staff_advisor);
-    if (!teacher) {
+    // Check if staff advisor user exists and is a staff role
+    const staffUser = await User.findById(staff_advisor);
+    if (!staffUser || !['teacher','hod','principal','admin','staff'].includes(staffUser.role)) {
       return reply.status(404).send({
         status_code: 404,
-        message: "Staff advisor (teacher) not found",
+        message: "Staff advisor not found or not a staff role",
         data: "",
       });
     }
@@ -218,13 +218,13 @@ export const updateBatchHandler = async (
       });
     }
 
-    // If updating staff advisor, check if teacher exists
+    // If updating staff advisor, check if user exists and is a staff role
     if (updateData.staff_advisor) {
-      const teacher = await Teacher.findById(updateData.staff_advisor);
-      if (!teacher) {
+      const staffUser = await User.findById(updateData.staff_advisor);
+      if (!staffUser || !['teacher','hod','principal','admin','staff'].includes(staffUser.role)) {
         return reply.status(404).send({
           status_code: 404,
-          message: "Staff advisor (teacher) not found",
+          message: "Staff advisor not found or not a staff role",
           data: "",
         });
       }

@@ -1,6 +1,4 @@
 import mongoose from "mongoose";
-import { string } from "zod";
-import { required } from "zod/mini";
 
 
 const { Schema, model } = mongoose;
@@ -19,7 +17,7 @@ const attendanceSessionSchema  = new Schema(
         },
         created_by : { 
             type: mongoose.Schema.Types.ObjectId, 
-            ref: "Teacher", 
+            ref: "User", 
             required: true 
         },
         start_time : { type: Date, required: true },
@@ -44,7 +42,7 @@ const attendanceRecordSchema  = new Schema(
     {
         student : {
             type: mongoose.Schema.Types.ObjectId,
-            ref:"Student",
+            ref:"User",
             required:true,
         },
         session : {
@@ -54,7 +52,7 @@ const attendanceRecordSchema  = new Schema(
         },
         marked_by : {
             type: mongoose.Schema.Types.ObjectId,
-            ref:"Teacher",
+            ref:"User",
             required:true,
         },
         status: {

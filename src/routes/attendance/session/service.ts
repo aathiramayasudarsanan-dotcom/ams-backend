@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { AttendanceSession } from "@/plugins/db/models/attendance.model";
-import { Teacher, User } from "@/plugins/db/models/auth.model";
+import { User } from "@/plugins/db/models/auth.model";
 
 export const createSession = async (
   request: FastifyRequest,
@@ -8,16 +8,6 @@ export const createSession = async (
 ) => {
   try {
     const userId = request.user.id;
-    
-    // Find the teacher associated with this user
-    const teacher = await Teacher.findOne({ user: userId });
-    if (!teacher) {
-      return reply.status(404).send({
-        status_code: 404,
-        message: "Teacher profile not found",
-        data: "",
-      });
-    }
 
     const { batch, subject, start_time, end_time, hours_taken, session_type } = request.body as {
       batch: string;
@@ -31,7 +21,7 @@ export const createSession = async (
     const newSession = new AttendanceSession({
       batch,
       subject,
-      created_by: teacher._id,
+      created_by: userId,
       start_time: new Date(start_time),
       end_time: new Date(end_time),
       hours_taken,
@@ -66,13 +56,7 @@ export const getSession = async (
     const session = await AttendanceSession.findById(sessionId)
       .populate("batch", "name code year")
       .populate("subject", "name code")
-      .populate({
-        path: "created_by",
-        populate: {
-          path: "user",
-          select: "name email first_name last_name",
-        },
-      });
+      .populate("created_by", "name email first_name last_name");
 
     if (!session) {
       return reply.status(404).send({
@@ -143,13 +127,7 @@ export const listSessions = async (
     const sessions = await AttendanceSession.find(filter)
       .populate("batch", "name code year")
       .populate("subject", "name code")
-      .populate({
-        path: "created_by",
-        populate: {
-          path: "user",
-          select: "name email first_name last_name",
-        },
-      })
+      .populate("created_by", "name email first_name last_name")
       .sort({ start_time: -1 })
       .skip(skip)
       .limit(limit);
@@ -184,22 +162,12 @@ export const getRecentSessions = async (
 ) => {
   try {
     const userId = request.user.id;
-    
-    // Find the teacher associated with this user
-    const teacher = await Teacher.findOne({ user: userId });
-    if (!teacher) {
-      return reply.status(404).send({
-        status_code: 404,
-        message: "Teacher profile not found",
-        data: "",
-      });
-    }
 
     // Use aggregation to get unique batch-subject combinations
     const uniqueSessions = await AttendanceSession.aggregate([
       {
         $match: {
-          created_by: teacher._id,
+          created_by: userId,
         },
       },
       {
@@ -298,11 +266,9 @@ export const updateSession = async (
       });
     }
 
-    // Check if user is the creator (unless admin/principal/hod)
-    const teacher = await Teacher.findOne({ user: userId });
+    // Check authorization: requestor must be the creator OR have admin privileges
     if (
-      teacher &&
-      session.created_by.toString() !== teacher._id.toString() &&
+      session.created_by.toString() !== userId.toString() &&
       !["admin", "principal", "hod"].includes(request.user.role)
     ) {
       return reply.status(403).send({
@@ -370,11 +336,9 @@ export const deleteSession = async (
       });
     }
 
-    // Check if user is the creator (unless admin/principal/hod)
-    const teacher = await Teacher.findOne({ user: userId });
+    // Check authorization: requestor must be the creator OR have admin privileges
     if (
-      teacher &&
-      session.created_by.toString() !== teacher._id.toString() &&
+      session.created_by.toString() !== userId.toString() &&
       !["admin", "principal", "hod"].includes(request.user.role)
     ) {
       return reply.status(403).send({

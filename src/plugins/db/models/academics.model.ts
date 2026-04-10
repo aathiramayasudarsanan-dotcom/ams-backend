@@ -1,6 +1,4 @@
 import mongoose from "mongoose";
-import { string } from "zod";
-import { required } from "zod/mini";
 
 
 const {Schema , model } = mongoose;
@@ -16,7 +14,7 @@ const batchSchema = new Schema(
 			required:true,
 			enum: ["CSE", "ECE", "IT"]
 		},
-        staff_advisor : { type: mongoose.Schema.Types.ObjectId, ref: "Teacher", required: true },
+        staff_advisor : { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     },
     { collection: "batch" },
 );
