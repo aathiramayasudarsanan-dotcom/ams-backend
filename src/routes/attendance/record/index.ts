@@ -5,7 +5,7 @@ import {
   FastifyInstance,
   RouteShorthandOptions,
 } from "fastify";
-import { isAnyStaff, isAnyStaffOrStudent } from "@/middleware/roles";
+import { isAnyStaff } from "@/middleware/roles";
 import { 
   createRecord,
   createBulkRecords, 
@@ -36,34 +36,18 @@ export default async function (fastify: FastifyInstance) {
       from_date?: string;
       to_date?: string;
     } 
-  }>("/", { 
-    schema: recordListSchema, 
-    preHandler: [isAnyStaffOrStudent] 
-  }, listRecords);
+  }>("/", { schema: recordListSchema }, listRecords);
 
-  fastify.get<{ Params: { id: string } }>("/:id", { 
-    preHandler: [isAnyStaffOrStudent] 
-  }, getRecord);
+  fastify.get<{ Params: { id: string } }>("/:id", getRecord);
 
   // Create single attendance record
-  fastify.post("/", { 
-    schema: recordCreateSchema, 
-    preHandler: [isAnyStaff] 
-  }, createRecord);
+  fastify.post("/", { schema: recordCreateSchema, preHandler: [isAnyStaff] }, createRecord);
 
   // Create bulk attendance records
-  fastify.post("/bulk", { 
-    schema: recordBulkCreateSchema, 
-    preHandler: [isAnyStaff] 
-  }, createBulkRecords);
+  fastify.post("/bulk", { schema: recordBulkCreateSchema, preHandler: [isAnyStaff] }, createBulkRecords);
 
-  fastify.put<{ Params: { id: string } }>("/:id", { 
-    schema: recordUpdateSchema, 
-    preHandler: [isAnyStaff] 
-  }, updateRecord);
+  fastify.put<{ Params: { id: string } }>("/:id", { schema: recordUpdateSchema, preHandler: [isAnyStaff] }, updateRecord);
 
   // Delete route - restricted to admin, principal, hod, or the marker
-  fastify.delete<{ Params: { id: string } }>("/:id", { 
-    preHandler: [isAnyStaff] 
-  }, deleteRecord);
+  fastify.delete<{ Params: { id: string } }>("/:id", { preHandler: [isAnyStaff] }, deleteRecord);
 }

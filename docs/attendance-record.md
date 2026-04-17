@@ -27,7 +27,6 @@ All endpoints require authentication via session cookies.
 
 **Middleware Used:**
 - `authMiddleware` – Verifies user session ([src/middleware/auth.ts](../../src/middleware/auth.ts))
-- `isAnyStaffOrStudent` – Allows read routes for staff and student ([src/middleware/roles.ts](../../src/middleware/roles.ts))
 - `isAnyStaff` – Restricts write routes to staff members ([src/middleware/roles.ts](../../src/middleware/roles.ts))
 
 ---

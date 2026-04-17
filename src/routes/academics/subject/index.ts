@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import authMiddleware from "@/middleware/auth";
-import { isAdmin, isAnyStaffOrStudent } from "@/middleware/roles";
+import { isAdmin } from "@/middleware/roles";
 import { 
   listSubjectsHandler, 
   getSubjectByIdHandler, 
@@ -21,10 +21,10 @@ export default async function (fastify: FastifyInstance) {
   fastify.addHook("preHandler", authMiddleware);
 
   // List all subjects - accessible by any staff and students
-  fastify.get("/", { schema: listSubjectsSchema, preHandler: [isAnyStaffOrStudent] }, listSubjectsHandler);
+  fastify.get("/", { schema: listSubjectsSchema }, listSubjectsHandler);
 
   // Get single subject - accessible by any staff and students
-  fastify.get("/:id", { schema: getSubjectByIdSchema, preHandler: [isAnyStaffOrStudent] }, getSubjectByIdHandler);
+  fastify.get("/:id", { schema: getSubjectByIdSchema }, getSubjectByIdHandler);
 
   // Create subject - admin only
   fastify.post("/", { schema: createSubjectSchema, preHandler: [isAdmin] }, createSubjectHandler);

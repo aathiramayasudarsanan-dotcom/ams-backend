@@ -25,4 +25,3 @@ export const isStaff = checkRoles(['staff']);
 
 // Combined role middlewares for common scenarios
 export const isAnyStaff = checkRoles(['teacher', 'hod', 'principal', 'staff', 'admin']);
-export const isAnyStaffOrStudent = checkRoles(['teacher', 'hod', 'principal', 'staff', 'admin', 'student']);
