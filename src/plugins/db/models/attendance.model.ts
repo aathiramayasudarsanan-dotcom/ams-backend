@@ -3,6 +3,24 @@ import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
 
+const attendanceRecordSubSchema = new Schema(
+    {
+        student: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+        status: {
+            type: String,
+            required: true,
+            enum: ["present", "absent", "late", "excused"]
+        },
+        remarks: { type: String },
+        marked_at: { type: Date, required: true },
+    },
+    { _id: true }
+);
+
 const attendanceSessionSchema  = new Schema(
     {
         batch : {
@@ -28,6 +46,7 @@ const attendanceSessionSchema  = new Schema(
 			required:true,
 			enum: ["regular", "extra", "practical"]
 		},
+        records: [attendanceRecordSubSchema],
         createdAt: { type: Date, required: true },
 		updatedAt: { type: Date, required: true },
 
@@ -37,39 +56,6 @@ const attendanceSessionSchema  = new Schema(
     }
 ) 
 
-
-const attendanceRecordSchema  = new Schema(
-    {
-        student : {
-            type: mongoose.Schema.Types.ObjectId,
-            ref:"User",
-            required:true,
-        },
-        session : {
-            type: mongoose.Schema.Types.ObjectId,
-            ref:"AttendanceSession",
-            required:true,
-        },
-        marked_by : {
-            type: mongoose.Schema.Types.ObjectId,
-            ref:"User",
-            required:true,
-        },
-        status: {
-			type: String, 
-			required:true,
-			enum: ["present", "absent", "late", "excused"]
-		},
-        remarks : { type: String },
-        marked_at: { type: Date, required: true },
-    },
-    {
-        collection : "attendance_record"
-    },
-)
-
-
 const AttendanceSession = model("AttendanceSession", attendanceSessionSchema);
-const AttendanceRecord = model("AttendanceRecord", attendanceRecordSchema);
 
-export { AttendanceSession, AttendanceRecord };
+export { AttendanceSession };
