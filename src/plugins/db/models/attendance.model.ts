@@ -56,6 +56,15 @@ const attendanceSessionSchema  = new Schema(
     }
 ) 
 
+// Covers the "student attendance summary" query.
+attendanceSessionSchema.index({ "records.student": 1, subject: 1, batch: 1 });
+
+// Covers session listing queries filtered by batch/subject with time-based sort.
+attendanceSessionSchema.index({ batch: 1, subject: 1, start_time: -1 });
+
+// Covers the teacher dashboard "recent sessions" query (getRecentSessions).
+attendanceSessionSchema.index({ created_by: 1, start_time: -1 });
+
 const AttendanceSession = model("AttendanceSession", attendanceSessionSchema);
 
 export { AttendanceSession };
