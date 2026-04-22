@@ -25,8 +25,6 @@ const configSchema = new Schema(
     }
 );
 
-configSchema.index({ key: 1 });
-
 const Config = model("Config", configSchema);
 
 export { Config };

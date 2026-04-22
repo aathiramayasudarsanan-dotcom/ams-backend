@@ -21,6 +21,7 @@ interface CreateBatchBody {
   adm_year: number;
   department: "CSE" | "ECE" | "IT";
   staff_advisor: string;
+  scheme: string;
 }
 
 interface UpdateBatchParams {
@@ -34,6 +35,7 @@ interface UpdateBatchBody {
   adm_year?: number;
   department?: "CSE" | "ECE" | "IT";
   staff_advisor?: string;
+  scheme?: string;
 }
 
 interface DeleteBatchParams {
@@ -146,7 +148,7 @@ export const createBatchHandler = async (
   reply: FastifyReply
 ) => {
   try {
-    const { name, adm_year, department, staff_advisor, id, batch_id } =
+    const { name, adm_year, department, staff_advisor, scheme, id, batch_id } =
       request.body as CreateBatchBody;
     const requestedId = normalizeBatchId(id || batch_id);
     const batchId = requestedId || generateBatchId(adm_year, department);
@@ -194,6 +196,7 @@ export const createBatchHandler = async (
       adm_year,
       department,
       staff_advisor,
+      scheme,
     });
 
     const populatedBatch = await Batch.findById(batch._id).populate(

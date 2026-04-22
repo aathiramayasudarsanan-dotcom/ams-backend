@@ -18,9 +18,9 @@ const batchSchema = new Schema(
         adm_year: { type: Number, required: true },
         department: { 
 			type: String, 
-			required:true,
-			enum: ["CSE", "ECE", "IT"]
+			required:true
 		},
+        scheme: { type: String, required: true },
         staff_advisor : { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     },
     { collection: "batch" },
@@ -39,7 +39,8 @@ const subjectSchema = new Schema(
 		},
         total_marks: {type: Number, required: true},
         pass_mark: {type: Number, required: true},
-        faculty_in_charge : [{type:String, required:true}], // using this for storing array of teahers names.
+        scheme: { type: String, required: true },
+        department: { type: String, required: true },
     },
     { collection: "subject" },
 );

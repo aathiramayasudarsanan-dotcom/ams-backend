@@ -8,6 +8,8 @@ export const listSubjectsSchema: RouteShorthandOptions["schema"] = {
       limit: { type: "number", minimum: 1, maximum: 100, default: 10 },
       sem: { type: "string" },
       type: { type: "string", enum: ["Theory", "Practical"] },
+      scheme: { type: "string" },
+      department: { type: "string" },
     },
   },
 };
@@ -25,7 +27,7 @@ export const getSubjectByIdSchema: RouteShorthandOptions["schema"] = {
 export const createSubjectSchema: RouteShorthandOptions["schema"] = {
   body: {
     type: "object",
-    required: ["name", "sem", "subject_code", "type", "total_marks", "pass_mark"],
+    required: ["name", "sem", "subject_code", "type", "total_marks", "pass_mark", "scheme", "department"],
     properties: {
       name: { type: "string", minLength: 1 },
       sem: { type: "string", minLength: 1 },
@@ -33,10 +35,8 @@ export const createSubjectSchema: RouteShorthandOptions["schema"] = {
       type: { type: "string", enum: ["Theory", "Practical"] },
       total_marks: { type: "number", minimum: 0 },
       pass_mark: { type: "number", minimum: 0 },
-      faculty_in_charge: { 
-        type: "array",
-        items: { type: "string" },
-      },
+      scheme: { type: "string", minLength: 1 },
+      department: { type: "string", minLength: 1 },
     },
   },
 };
@@ -58,10 +58,8 @@ export const updateSubjectSchema: RouteShorthandOptions["schema"] = {
       type: { type: "string", enum: ["Theory", "Practical"] },
       total_marks: { type: "number", minimum: 0 },
       pass_mark: { type: "number", minimum: 0 },
-      faculty_in_charge: { 
-        type: "array",
-        items: { type: "string" },
-      },
+      scheme: { type: "string", minLength: 1 },
+      department: { type: "string", minLength: 1 },
     },
   },
 };

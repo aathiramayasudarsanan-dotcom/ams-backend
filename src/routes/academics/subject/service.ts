@@ -19,7 +19,8 @@ interface CreateSubjectBody {
   type: "Theory" | "Practical";
   total_marks: number;
   pass_mark: number;
-  faculty_in_charge?: string[];
+  scheme: string;
+  department: string;
 }
 
 interface UpdateSubjectParams {
@@ -33,7 +34,8 @@ interface UpdateSubjectBody {
   type?: "Theory" | "Practical";
   total_marks?: number;
   pass_mark?: number;
-  faculty_in_charge?: string[];
+  scheme?: string;
+  department?: string;
 }
 
 interface DeleteSubjectParams {
@@ -118,7 +120,7 @@ export const createSubjectHandler = async (
   reply: FastifyReply
 ) => {
   try {
-    const { name, sem, subject_code, type, total_marks, pass_mark, faculty_in_charge } = request.body as CreateSubjectBody;
+    const { name, sem, subject_code, type, total_marks, pass_mark, scheme, department } = request.body as CreateSubjectBody;
 
     // Validate that pass_mark is not greater than total_marks
     if (pass_mark > total_marks) {
@@ -136,7 +138,8 @@ export const createSubjectHandler = async (
       type,
       total_marks,
       pass_mark,
-      faculty_in_charge,
+      scheme,
+      department,
     });
 
     return reply.status(201).send({

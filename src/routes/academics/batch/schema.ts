@@ -8,6 +8,7 @@ export const listBatchesSchema: RouteShorthandOptions["schema"] = {
       limit: { type: "number", minimum: 1, maximum: 100, default: 10 },
       department: { type: "string", enum: ["CSE", "ECE", "IT"] },
       adm_year: { type: "number" },
+      scheme: { type: "string" },
     },
   },
 };
@@ -25,7 +26,7 @@ export const getBatchByIdSchema: RouteShorthandOptions["schema"] = {
 export const createBatchSchema: RouteShorthandOptions["schema"] = {
   body: {
     type: "object",
-    required: ["name", "adm_year", "department", "staff_advisor"],
+    required: ["name", "adm_year", "department", "staff_advisor", "scheme"],
     properties: {
       name: { type: "string", minLength: 1 },
       id: { type: "string", pattern: "^[0-9]{2}[A-Z]{2,3}[0-9]*$" },
@@ -33,6 +34,7 @@ export const createBatchSchema: RouteShorthandOptions["schema"] = {
       adm_year: { type: "number", minimum: 2000, maximum: 2100 },
       department: { type: "string", enum: ["CSE", "ECE", "IT"] },
       staff_advisor: { type: "string" }, // Teacher ObjectId
+      scheme: { type: "string", minLength: 1 },
     },
   },
 };
@@ -54,6 +56,7 @@ export const updateBatchSchema: RouteShorthandOptions["schema"] = {
       adm_year: { type: "number", minimum: 2000, maximum: 2100 },
       department: { type: "string", enum: ["CSE", "ECE", "IT"] },
       staff_advisor: { type: "string" }, // Teacher ObjectId
+      scheme: { type: "string", minLength: 1 },
     },
   },
 };
