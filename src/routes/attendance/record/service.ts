@@ -141,7 +141,7 @@ export const getRecord = async (
     const sessionDoc = await AttendanceSession.findOne({ "records._id": new mongoose.Types.ObjectId(recordId) })
       .populate("records.student", "name email first_name last_name")
       .populate("batch", "name code year")
-      .populate("subject", "name code");
+      .populate("subject", "name code sem");
 
     if (!sessionDoc) {
       return reply.status(404).send({
@@ -317,7 +317,7 @@ export const listRecords = async (
           session: {
              _id: "$_id",
              batch: { _id: "$batchInfo._id", name: "$batchInfo.name", code: "$batchInfo.code", year: "$batchInfo.year" },
-             subject: { _id: "$subjectInfo._id", name: "$subjectInfo.name", code: "$subjectInfo.code" }
+             subject: { _id: "$subjectInfo._id", name: "$subjectInfo.name", code: "$subjectInfo.code", sem: "$subjectInfo.sem" }
           },
           status: "$records.status",
           remarks: "$records.remarks",
@@ -368,7 +368,8 @@ export const updateRecord = async (
     const recordId = request.params.id;
     const userId = request.user.id;
 
-    const sessionDoc = await AttendanceSession.findOne({ "records._id": new mongoose.Types.ObjectId(recordId) });
+    const sessionDoc = await AttendanceSession.findOne({ "records._id": new mongoose.Types.ObjectId(recordId) })
+      .populate("subject", "name code sem");
     if (!sessionDoc) {
       return reply.status(404).send({
         status_code: 404,
@@ -410,7 +411,7 @@ export const updateRecord = async (
     const updatedSession = await AttendanceSession.findOne({ "records._id": new mongoose.Types.ObjectId(recordId) })
       .populate("records.student", "name email first_name last_name")
       .populate("batch", "name code year")
-      .populate("subject", "name code");
+      .populate("subject", "name code sem");
       
     if (!updatedSession) {
        return reply.status(404).send({
